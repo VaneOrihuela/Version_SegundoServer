@@ -1,0 +1,48 @@
+@Library([
+    'gcp-library@v1.0.0',
+    'common-library@v1.0.3'
+]) _
+
+pipeline {
+
+    agent none
+
+    environment {
+        BRANCHES = "dev|qas|pre|pro"
+    }
+
+    stages {
+        stage ("Initialize Pipeline") {
+            agent { kubernetes { inheritFrom 'gcloud' showRawYaml false } }
+            steps {
+                script { env.serviceAccount = saUtils.setSa() }
+            }
+        }
+
+        stage ("merge") {
+            when { branch pattern: BRANCHES, comparator: "REGEXP"; beforeAgent true }
+            agent { kubernetes { inheritFrom 'gcloud'; serviceAccount "${env.serviceAccount}"; showRawYaml false } }
+            stages {
+                stage ("build") {
+                    steps {
+                        sh ("echo build")
+                    }
+                }
+            }
+
+        }
+
+        stage ("pr") {
+            when { changeRequest target: BRANCHES, comparator: "REGEXP"; beforeAgent true }
+            agent { kubernetes { inheritFrom 'gcloud' serviceAccount "${env.serviceAccount}" showRawYaml false } }
+            stages {
+                stage ("lint") {
+                    steps {
+                        sh ("echo lint")
+                    }
+                }
+            }
+        }
+
+    }
+}
