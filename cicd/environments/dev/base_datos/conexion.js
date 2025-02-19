@@ -1,4 +1,6 @@
 const oracledb = require('oracledb');
+require('dotenv').config();
+
 
 const conexion = async () => {
     var conexionBd;
@@ -6,9 +8,9 @@ const conexion = async () => {
     try {
         // Establecer conexión
         conexionBd = await oracledb.getConnection({
-            user: 'APL_TRANSACTION',
-            password: 'ApL_tRans4ct1on_2024',
-            connectString: '172.16.202.9:1527/TXNMGRD',
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            connectString: process.env.DB_CONNECTSTRING,
         });
         return conexionBd;
     } catch (error) {
