@@ -51,8 +51,7 @@ const ObtenerDatosToken = async (req, res) => {
         var count = 0;
         datos.forEach(dato => {
             count ++;
-            console.log(`Token: ${count}`);
-            
+            console.log(`Token: ${count}`);           
             const convertirToken = new ConvertirToken(dato.TOKEN_DATA);
             const resultadoSeparar = convertirToken.Separar();
 

@@ -43,7 +43,7 @@ const Repositorio = {
         TERM_ID as TIENDA_TERM, 
         CARD_NUM as NUM_TARJETA, 
         ORIG_INVOICE_NUM as BOLETA, 
-        TOKEN_DATA 
+        DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
         from TRANSACCIONES 
       where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null
       `;
