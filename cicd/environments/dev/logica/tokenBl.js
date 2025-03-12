@@ -252,6 +252,41 @@ const ObtenerDatosToken = async (req, res) => {
 
 }
 
+const ValidarConexion = async (req, res) => {
+
+  var Request = req.body;
+  try {   
+
+    const conexion = await repositorio.ValidarConexion(); 
+    
+    if(!conexion)
+    {
+      return res.status(500).json({
+        status: "Error",
+        mensaje: "No hay conexion a la base.",
+        error: "Se valido y no hay conexion a la base valide las credenciales y si tiene permisos.",
+        exitoso:conexion
+      });
+
+    }
+      // obtener datos.ValidarConexion
+      return res.status(200).send({
+          data: "Conexion Correctamente a la base",
+          exitoso:conexion          
+      });
+  }
+  catch (error) {
+      return res.status(500).json({
+          status: "Error",
+          mensaje: "Ocurrió un error en el servidor.",
+          error: error.message,
+          exitoso:false
+      });
+  }
+}
+
+
 module.exports = {
-    ObtenerDatosToken
+    ObtenerDatosToken,
+    ValidarConexion
 };

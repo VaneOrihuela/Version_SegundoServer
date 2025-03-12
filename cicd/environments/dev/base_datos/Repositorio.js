@@ -26,6 +26,26 @@ const Repositorio = {
 
     return connection;
   },
+  ValidarConexion: async () =>{
+      let connection = await conexion.conexion();
+      try{
+
+        return await Repositorio.verificarConexion(connection);
+
+      }catch (error) {
+        console.error("Error al obtener transacciones:", error);
+        throw error;
+      } finally {
+        if (connection) {
+          try {
+            await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+          } catch (err) {
+            console.error("Error al cerrar la conexión:", err);
+          }
+        }
+      }
+
+  },
   // Función para obtener transacciones con los parámetros proporcionados
   obtenerTransacciones: async () => {
     let connection;
