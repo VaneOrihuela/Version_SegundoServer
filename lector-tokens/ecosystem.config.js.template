@@ -1,0 +1,22 @@
+module.exports = {
+  apps : [{
+    name   : "token-green",
+    script : "./token-green/index.js",
+    env: {
+      DB_USER: "${DB_USER}",
+      DB_PASSWORD: "${DB_PASSWORD}",
+      DB_CONNECTSTRING: "${DB_CONNECTSTRING}",
+      PORT: 5002
+    }
+  },
+  {
+    name   : "token-blue",
+    script : "./token-blue/index.js",
+    env: {
+      DB_USER: "${DB_USER}",
+      DB_PASSWORD: "${DB_PASSWORD}",
+      DB_CONNECTSTRING: "${DB_CONNECTSTRING}",
+      PORT: 5001
+    },
+  }]
+}
