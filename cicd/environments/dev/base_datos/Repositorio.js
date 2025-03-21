@@ -56,14 +56,14 @@ const Repositorio = {
       if (!isConnectionActive) {
         throw new Error('La conexión no está activa o se cerró');
       }
-      // Query para obtener las transacciones basadas en los filtros ORDER BY TRAN_DAT DESC
+      // Query para obtener las transacciones basadas en los filtros ORDER BY TRAN_DAT DESC  agrego etse campo poor silo vuelvena dejar long  DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
       const query = `
       select 
         TRAN_DAT as FECHA_TRASC, 
         TERM_ID as TIENDA_TERM, 
         CARD_NUM as NUM_TARJETA, 
         ORIG_INVOICE_NUM as BOLETA, 
-        DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
+       TOKEN_DATA
         from TRANSACCIONES 
       where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null
       `;
@@ -157,7 +157,8 @@ const Repositorio = {
                 TIENDA_TERMINAL,
                 NUMERO_TARJETA,
                 BOLETA,
-                TIPO
+                TIPO,
+                KB2_ARQC
             ) VALUES (
                 :KQ2_ID_MEDIO_ACCESO,
                 :KQN_FLAG,
@@ -174,7 +175,8 @@ const Repositorio = {
                 :TIENDA_TERMINAL,
                 :NUMERO_TARJETA,
                 :BOLETA,
-                '0'
+                '0',
+                :KB2_ARQC
             )    
       `;
 

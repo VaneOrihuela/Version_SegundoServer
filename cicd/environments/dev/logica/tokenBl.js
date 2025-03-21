@@ -66,8 +66,16 @@ const ObtenerDatosToken = async (req, res) => {
                     esPrimerTipo = false;
                 } else {
                     token.tipo = convertirToken.convertirHexAAscii(token.tipo);
+                    if(token.tipo === 'B2')
+                      {
+                        console.log(token.datos);
+                      }
+                    else
+                    {
+                      token.datos = convertirToken.convertirHexAAscii(token.datos);
+                    }
                     token.longitud = convertirToken.convertirHexADecimal(token.longitud);
-                    token.datos = convertirToken.convertirHexAAscii(token.datos);
+                    
                 }
 
                 return token;
@@ -88,7 +96,8 @@ const ObtenerDatosToken = async (req, res) => {
                 FECHA_TRANSACCION:null,
                 TIENDA_TERMINAL:null,
                 NUMERO_TARJETA:null,
-                BOLETA:null
+                BOLETA:null,
+                ARQC:null,
             };
 
             plantillaDatos.FECHA_TRANSACCION = dato.FECHA_TRASC;
@@ -147,6 +156,12 @@ const ObtenerDatosToken = async (req, res) => {
                                // pendiente
                                 plantillaDatos.KFH_ECOMM_3D_SECURE_IND = esValorValido(datoConvertido.datos[0][6]) ? datoConvertido.datos[0][6] : ' '; // posison 6 viene en blaco es correcto?
                                 plantillaDatos.KFH_CAV_TYP = esValorValido(datoConvertido.datos[0][13]) ? datoConvertido.datos[0][13] : ''; // posison 13     // esta en 8 es correcto documentacion dice otra cosa?                
+                            }
+                                break;
+                        case 'B2':
+                            if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
+                                 const arqc = datoConvertido.datos.slice(31,47); // 16 posiciones                                
+                                plantillaDatos.ARQC = esValorValido(arqc) ? arqc : '               '; // posison 16 viene en blaco es correcto?
                             }
                                 break;
                         default:
@@ -229,6 +244,9 @@ const ObtenerDatosToken = async (req, res) => {
             if (validarLongitud(plantillaDatos.TIPO, 20)) {
               errores.push({ campo: 'TIPO', valor: plantillaDatos.TIPO });
             }
+            if (validarLongitud(plantillaDatos.ARQC, 16)) {
+              errores.push({ campo: 'ARQC', valor: plantillaDatos.ARQC });
+            }
           });
 
           console.log("Errores: ", errores);          
@@ -237,8 +255,9 @@ const ObtenerDatosToken = async (req, res) => {
         const xml = generarXML(plantillasDatos);
         const responseModificar = await repositorio.ModificarTransaccionesFlag(xml);
         // obtener datos.
-        return res.status(200).send({
-            data: "Guardado Correctamente"           
+        return res.status(200).send({            
+            version: "1.0.0", 
+            exitoso: true         
         });
     }
     catch (error) {
