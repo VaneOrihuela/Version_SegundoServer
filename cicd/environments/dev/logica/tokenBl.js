@@ -97,7 +97,7 @@ const ObtenerDatosToken = async (req, res) => {
                 TIENDA_TERMINAL:null,
                 NUMERO_TARJETA:null,
                 BOLETA:null,
-                ARQC:null,
+                KB2_ARQC:null,
             };
 
             plantillaDatos.FECHA_TRANSACCION = dato.FECHA_TRASC;
@@ -161,7 +161,7 @@ const ObtenerDatosToken = async (req, res) => {
                         case 'B2':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
                                  const arqc = datoConvertido.datos.slice(31,47); // 16 posiciones                                
-                                plantillaDatos.ARQC = esValorValido(arqc) ? arqc : '               '; // posison 16 viene en blaco es correcto?
+                                plantillaDatos.KB2_ARQC = esValorValido(arqc) ? arqc : '               '; // posison 16 viene en blaco es correcto?
                             }
                                 break;
                         default:

@@ -26,24 +26,24 @@ const Repositorio = {
 
     return connection;
   },
-  ValidarConexion: async () =>{
-      let connection = await conexion.conexion();
-      try{
+  ValidarConexion: async () => {
+    let connection = await conexion.conexion();
+    try {
 
-        return await Repositorio.verificarConexion(connection);
+      return await Repositorio.verificarConexion(connection);
 
-      }catch (error) {
-        console.error("Error al obtener transacciones:", error);
-        throw error;
-      } finally {
-        if (connection) {
-          try {
-            await connection.close(); // Aseguramos cerrar la conexión después de la consulta
-          } catch (err) {
-            console.error("Error al cerrar la conexión:", err);
-          }
+    } catch (error) {
+      console.error("Error al obtener transacciones:", error);
+      throw error;
+    } finally {
+      if (connection) {
+        try {
+          await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+        } catch (err) {
+          console.error("Error al cerrar la conexión:", err);
         }
       }
+    }
 
   },
   // Función para obtener transacciones con los parámetros proporcionados
@@ -80,7 +80,31 @@ const Repositorio = {
         fetchArraySize: 10000  // Traemos 5000 filas por lote en lugar del default (100)
       };
 
-      const result = await connection.execute(query, [], options);
+      let result;
+      // const result = await connection.execute(query, [], options);
+
+      try {
+        result = await connection.execute(query, [], options);
+      } catch (error) {
+        console.error("⚠ Error con la primera consulta, intentando con DBMS_LOB.SUBSTR:", error.message);
+        query = `
+        SELECT 
+            TRAN_DAT AS FECHA_TRASC, 
+            TERM_ID AS TIENDA_TERM, 
+            CARD_NUM AS NUM_TARJETA, 
+            ORIG_INVOICE_NUM AS BOLETA, 
+            DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
+        FROM TRANSACCIONES 
+        WHERE TOKEN_FLAG = 0 AND TOKEN_DATA IS NOT NULL
+        `;
+
+        try {
+          result = await connection.execute(query, [], options);
+        } catch (finalError) {
+          console.error("❌ Ambas consultas fallaron:", finalError.message);
+          throw finalError; // Lanzamos el error final si ambas fallan
+        }
+      }
       const resultSet = result.resultSet;
 
       let rows = [];
@@ -186,7 +210,7 @@ const Repositorio = {
       }
       // Ejecutar la consulta con los parámetros proporcionados
       const resultado = await connection.executeMany(query, plantillas, { autoCommit: true });
-      
+
       console.log(`Número de filas insertadas: ${resultado.rowsAffected}`);
       return resultado.rowsAffected;
     } catch (error) {
@@ -203,32 +227,32 @@ const Repositorio = {
     }
   },
   ModificarTransaccionesFlag: async (xml) => {
-    let connection;    
+    let connection;
     try {
       connection = await Repositorio.obtenerConexion();
 
       const isConnectionActive = await Repositorio.verificarConexion(connection);
       if (!isConnectionActive) {
         throw new Error('La conexión no está activa o se cerró');
-      }   
+      }
 
-      
-        //const query = `BEGIN transacciones_pkg.actualizar_token_flag(:p_xml); END;`;
-        //const binds = { p_xml: { val: xml, type: oracledb.CLOB } };
 
-        const result = await connection.execute(
-          `UPDATE TRANSACCIONES
+      //const query = `BEGIN transacciones_pkg.actualizar_token_flag(:p_xml); END;`;
+      //const binds = { p_xml: { val: xml, type: oracledb.CLOB } };
+
+      const result = await connection.execute(
+        `UPDATE TRANSACCIONES
            SET TOKEN_FLAG = 1
            WHERE TOKEN_FLAG = 0`
-        );
+      );
 
-        // Ejecutar el batch de la consulta
-        //await connection.execute(query, binds, { autoCommit: true });  
+      // Ejecutar el batch de la consulta
+      //await connection.execute(query, binds, { autoCommit: true });  
 
-        // Realizar commit intermedio después de cada lote
-        await connection.commit();
-        return result.rowsAffected;
-     
+      // Realizar commit intermedio después de cada lote
+      await connection.commit();
+      return result.rowsAffected;
+
     } catch (error) {
       console.error("Error al ejecutar  UPDATE masivo:", error);
       throw error;
