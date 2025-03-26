@@ -40,7 +40,7 @@ pipeline {
                 script { readVarsFromYaml("jenkins/environments/$BRANCH_NAME/variables.yaml") }
             }
             post{
-                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh') } }
+                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh') } }
             }
         }
 
@@ -69,7 +69,7 @@ pipeline {
                                 }
                             }
                             post{
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
                             }
                         }
                         stage ("deploy green"){
@@ -120,7 +120,7 @@ pipeline {
                                 }
                             }
                             post{
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
                             }
                         }
                         stage ("deploy blue"){
@@ -162,7 +162,7 @@ pipeline {
                             }
                             post{
                                 success { script{ googleChatUtils.successfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
                             }
                         }
                     }
@@ -190,7 +190,7 @@ pipeline {
                                 }
                             }
                             post{
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
                             }
                         }
                         stage ("deploy green"){
@@ -241,7 +241,7 @@ pipeline {
                                 }
                             }
                             post{
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
                             }
                         }
                         stage ("deploy blue"){
@@ -283,7 +283,7 @@ pipeline {
                             }
                             post{
                                 success { script{ googleChatUtils.successfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
-                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                                failure { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
                             }
                         }
                     }
