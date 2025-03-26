@@ -26,8 +26,8 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
     }
     environment {
-        BRANCHES = "qas|pro"
-        DB_USER = credentials("DB_USER")
+        BRANCHES="qas|pro"
+        DB_USER=credentials("DB_USER")
         DB_PASSWORD=credentials("DB_PASSWORD")
         DB_CONNECTSTRING=credentials("DB_CONNECTSTRING")
     }
@@ -47,124 +47,253 @@ pipeline {
         stage ("merge") {
             when { branch pattern: BRANCHES, comparator: "REGEXP"; beforeAgent true }
             agent { kubernetes { inheritFrom 'gcloud'; showRawYaml false } }
-            stages {
-                stage ("list versions") {
-                    steps {
-                        script {
-                            withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
-                                def remote = [:]
-                                remote.name = IP_VIRTUAL_MACHINE
-                                remote.host = IP_VIRTUAL_MACHINE
-                                remote.user = SSH_USER
-                                remote.identityFile = SSH_PRIVATE_KEY
-                                remote.allowAnyHosts = true
-                                remote.logLevel = "INFO"
-                                def nodeVersion = sshCommand remote: remote, command: "node -v"
-                                echo "node version = $nodeVersion"
-                                def pm2Version = sshCommand remote: remote, command: "pm2 -v"
-                                echo "pm2 version = $pm2Version"
-                            }
-                        }
-                    }
-                    post{
-                        unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh') } }
-                    }
-                }
-                stage ("deploy green"){
-                    steps {
-                        script {
-                            withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
-                                // ========= Definir conexión ssh
-                                def remote = [:]
-                                remote.name = IP_VIRTUAL_MACHINE
-                                remote.host = IP_VIRTUAL_MACHINE
-                                remote.user = SSH_USER
-                                remote.identityFile = SSH_PRIVATE_KEY
-                                remote.allowAnyHosts = true
-                                remote.logLevel = "INFO"
-                                echo "\033[44;37m========== stop pm2 green ==========\033[0m"
-                                sshCommand remote: remote, command: "pm2 stop token-green", failOnError: false
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== delete green dir ==========\033[0m"
-                                sshCommand remote: remote, command: "rm -rf /home/node/token-green"
-                                sshCommand remote: remote, command: "ls /home/node"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== render pm2 js file ==========\033[0m"
-                                container("alpine"){
-                                    sh(label: "Render Cloud Run manifest", script: """
-                                        envsubst < lector-tokens/ecosystem.config.js.template > lector-tokens/ecosystem.config.js
-                                        cat lector-tokens/ecosystem.config.js
-                                    """
-                                    )
+            parallel {
+                stage ("IP_VIRTUAL_MACHINE_A") {
+                    agent { kubernetes { inheritFrom 'gcloud'; showRawYaml false } }
+                    stages {
+                        stage ("list versions") {
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_A
+                                        remote.host = IP_VIRTUAL_MACHINE_A
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        def nodeVersion = sshCommand remote: remote, command: "node -v"
+                                        echo "node version = $nodeVersion"
+                                        def pm2Version = sshCommand remote: remote, command: "pm2 -v"
+                                        echo "pm2 version = $pm2Version"
+                                    }
                                 }
-                                echo "\033[44;37m========== transfer app ==========\033[0m"
-                                sshPut remote: remote, from: 'lector-tokens', into: './'
-                                sshCommand remote: remote, command: "ls /home/node"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== create green dir ==========\033[0m"
-                                sshCommand remote: remote, command: "mv lector-tokens token-green"
-                                sshCommand remote: remote, command: "ls /home/node"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== npm install ==========\033[0m"
-                                sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/install-green.sh"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== start pm2 green ==========\033[0m"
-                                sshCommand remote: remote, command: "pm2 start token-green/ecosystem.config.js --only token-green"
-                                sleep time: 15, unit: 'SECONDS'
-                                echo "\033[44;37m========== test green ==========\033[0m"
-                                sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-green.sh"
-                                sleep time: 5, unit: 'SECONDS'
+                            }
+                            post{
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
                             }
                         }
-                    }
-                    post{
-                        unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh') } }
+                        stage ("deploy green"){
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        // ========= Definir conexión ssh
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_A
+                                        remote.host = IP_VIRTUAL_MACHINE_A
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        echo "\033[44;37m========== stop pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-green", failOnError: false
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== delete green dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "rm -rf /home/node/token-green"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== render pm2 js file ==========\033[0m"
+                                        container("alpine"){
+                                            sh(label: "Render Cloud Run manifest", script: """
+                                                envsubst < lector-tokens/ecosystem.config.js.template > lector-tokens/ecosystem.config.js
+                                                cat lector-tokens/ecosystem.config.js
+                                            """
+                                            )
+                                        }
+                                        echo "\033[44;37m========== transfer app ==========\033[0m"
+                                        sshPut remote: remote, from: 'lector-tokens', into: './'
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== create green dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "mv lector-tokens token-green"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== npm install ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/install-green.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== start pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 start token-green/ecosystem.config.js --only token-green"
+                                        sleep time: 15, unit: 'SECONDS'
+                                        echo "\033[44;37m========== test green ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-green.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                    }
+                                }
+                            }
+                            post{
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                            }
+                        }
+                        stage ("deploy blue"){
+                            // when green okay
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        // ========= Definir conexión ssh
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_A
+                                        remote.host = IP_VIRTUAL_MACHINE_A
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        echo "\033[44;37m========== delete pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-green"
+                                        sshCommand remote: remote, command: "pm2 delete token-green"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== stop pm2 blue ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-blue", failOnError: false
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== delete blue dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "rm -rf /home/node/token-blue"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== create blue dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "mv token-green token-blue"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== start pm2 blue ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 start token-blue/ecosystem.config.js --only token-blue"
+                                        sleep time: 15, unit: 'SECONDS'
+                                        echo "\033[44;37m========== test blue ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-blue.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                    }
+                                }
+                            }
+                            post{
+                                success { script{ googleChatUtils.successfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_A) } }
+                            }
+                        }
                     }
                 }
-                stage ("deploy blue"){
-                    // when green okay
-                    steps {
-                        script {
-                            withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
-                                // ========= Definir conexión ssh
-                                def remote = [:]
-                                remote.name = IP_VIRTUAL_MACHINE
-                                remote.host = IP_VIRTUAL_MACHINE
-                                remote.user = SSH_USER
-                                remote.identityFile = SSH_PRIVATE_KEY
-                                remote.allowAnyHosts = true
-                                remote.logLevel = "INFO"
-                                echo "\033[44;37m========== delete pm2 green ==========\033[0m"
-                                sshCommand remote: remote, command: "pm2 stop token-green"
-                                sshCommand remote: remote, command: "pm2 delete token-green"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== stop pm2 blue ==========\033[0m"
-                                sshCommand remote: remote, command: "pm2 stop token-blue", failOnError: false
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== delete blue dir ==========\033[0m"
-                                sshCommand remote: remote, command: "rm -rf /home/node/token-blue"
-                                sshCommand remote: remote, command: "ls /home/node"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== create blue dir ==========\033[0m"
-                                sshCommand remote: remote, command: "mv token-green token-blue"
-                                sshCommand remote: remote, command: "ls /home/node"
-                                sleep time: 5, unit: 'SECONDS'
-                                echo "\033[44;37m========== start pm2 blue ==========\033[0m"
-                                sshCommand remote: remote, command: "pm2 start token-blue/ecosystem.config.js --only token-blue"
-                                sleep time: 15, unit: 'SECONDS'
-                                echo "\033[44;37m========== test blue ==========\033[0m"
-                                sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-blue.sh"
-                                sleep time: 5, unit: 'SECONDS'
+
+                stage ("IP_VIRTUAL_MACHINE_B") {
+                    agent { kubernetes { inheritFrom 'gcloud'; showRawYaml false } }
+                    stages {
+                        stage ("list versions") {
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_B
+                                        remote.host = IP_VIRTUAL_MACHINE_B
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        def nodeVersion = sshCommand remote: remote, command: "node -v"
+                                        echo "node version = $nodeVersion"
+                                        def pm2Version = sshCommand remote: remote, command: "pm2 -v"
+                                        echo "pm2 version = $pm2Version"
+                                    }
+                                }
+                            }
+                            post{
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                            }
+                        }
+                        stage ("deploy green"){
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        // ========= Definir conexión ssh
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_B
+                                        remote.host = IP_VIRTUAL_MACHINE_B
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        echo "\033[44;37m========== stop pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-green", failOnError: false
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== delete green dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "rm -rf /home/node/token-green"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== render pm2 js file ==========\033[0m"
+                                        container("alpine"){
+                                            sh(label: "Render Cloud Run manifest", script: """
+                                                envsubst < lector-tokens/ecosystem.config.js.template > lector-tokens/ecosystem.config.js
+                                                cat lector-tokens/ecosystem.config.js
+                                            """
+                                            )
+                                        }
+                                        echo "\033[44;37m========== transfer app ==========\033[0m"
+                                        sshPut remote: remote, from: 'lector-tokens', into: './'
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== create green dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "mv lector-tokens token-green"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== npm install ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/install-green.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== start pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 start token-green/ecosystem.config.js --only token-green"
+                                        sleep time: 15, unit: 'SECONDS'
+                                        echo "\033[44;37m========== test green ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-green.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                    }
+                                }
+                            }
+                            post{
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                            }
+                        }
+                        stage ("deploy blue"){
+                            // when green okay
+                            steps {
+                                script {
+                                    withCredentials([sshUserPrivateKey(credentialsId: 'lector-tokens', keyFileVariable: 'SSH_PRIVATE_KEY', usernameVariable: 'SSH_USER')]) {
+                                        // ========= Definir conexión ssh
+                                        def remote = [:]
+                                        remote.name = IP_VIRTUAL_MACHINE_B
+                                        remote.host = IP_VIRTUAL_MACHINE_B
+                                        remote.user = SSH_USER
+                                        remote.identityFile = SSH_PRIVATE_KEY
+                                        remote.allowAnyHosts = true
+                                        remote.logLevel = "INFO"
+                                        echo "\033[44;37m========== delete pm2 green ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-green"
+                                        sshCommand remote: remote, command: "pm2 delete token-green"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== stop pm2 blue ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 stop token-blue", failOnError: false
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== delete blue dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "rm -rf /home/node/token-blue"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== create blue dir ==========\033[0m"
+                                        sshCommand remote: remote, command: "mv token-green token-blue"
+                                        sshCommand remote: remote, command: "ls /home/node"
+                                        sleep time: 5, unit: 'SECONDS'
+                                        echo "\033[44;37m========== start pm2 blue ==========\033[0m"
+                                        sshCommand remote: remote, command: "pm2 start token-blue/ecosystem.config.js --only token-blue"
+                                        sleep time: 15, unit: 'SECONDS'
+                                        echo "\033[44;37m========== test blue ==========\033[0m"
+                                        sshScript remote: remote, script: "jenkins/environments/$BRANCH_NAME/validate-blue.sh"
+                                        sleep time: 5, unit: 'SECONDS'
+                                    }
+                                }
+                            }
+                            post{
+                                success { script{ googleChatUtils.successfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
+                                unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh', IP_VIRTUAL_MACHINE_B) } }
                             }
                         }
                     }
-                    post{
-                        success { script{ googleChatUtils.successfullNotification('google-chat-wh') } }
-                        unsuccessful { script{ googleChatUtils.unsuccessfullNotification('google-chat-wh') } }
-                    }
+
                 }
             }
+            
         }
+    }
 
         stage ("pr") {
             when { changeRequest target: BRANCHES, comparator: "REGEXP"; beforeAgent true }
