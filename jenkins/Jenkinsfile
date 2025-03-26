@@ -46,7 +46,6 @@ pipeline {
 
         stage ("merge") {
             when { branch pattern: BRANCHES, comparator: "REGEXP"; beforeAgent true }
-            agent { kubernetes { inheritFrom 'gcloud'; showRawYaml false } }
             parallel {
                 stage ("IP_VIRTUAL_MACHINE_A") {
                     agent { kubernetes { inheritFrom 'gcloud'; showRawYaml false } }
@@ -293,7 +292,7 @@ pipeline {
             }
             
         }
-    }
+
 
         stage ("pr") {
             when { changeRequest target: BRANCHES, comparator: "REGEXP"; beforeAgent true }
