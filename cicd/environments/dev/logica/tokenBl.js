@@ -115,9 +115,9 @@ const ObtenerDatosToken = async (req, res) => {
                         case 'C0':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
 
-                                plantillaDatos.KC0_IND_ECOM = esValorValido(datoConvertido.datos[0][19]) ? datoConvertido.datos[0][19] : ' '; // posison 19
-                                plantillaDatos.KC0_CVV2 = esValorValido(datoConvertido.datos[0][22]) ? datoConvertido.datos[0][22] : ' '; // posion 22
-                                plantillaDatos.KC0_RESULTADO_VALIDACION_CAVV = esValorValido(datoConvertido.datos[0][26]) ? datoConvertido.datos[0][26] : ' '; // posion 26
+                                plantillaDatos.KC0_IND_ECOM = esValorValido(datoConvertido.datos[18]) ? datoConvertido.datos[18] : ' '; // posison 19
+                                plantillaDatos.KC0_CVV2 = esValorValido(datoConvertido.datos[21]) ? datoConvertido.datos[21] : ' '; // posion 22
+                                plantillaDatos.KC0_RESULTADO_VALIDACION_CAVV = esValorValido(datoConvertido.datos[25]) ? datoConvertido.datos[25] : ' '; // posion 26
                             }
                             break;
                         case 'Q2':
@@ -147,15 +147,15 @@ const ObtenerDatosToken = async (req, res) => {
                         case 'C4':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
                                
-                                plantillaDatos.KC4_NIV_SEG = esValorValido(datoConvertido.datos[0][8]) ? datoConvertido.datos[0][8] : ' '; 
-                                plantillaDatos.KC4_ID_IND = esValorValido(datoConvertido.datos[0][11]) ? datoConvertido.datos[0][11] : '0';            
+                                plantillaDatos.KC4_NIV_SEG = esValorValido(datoConvertido.datos[7]) ? datoConvertido.datos[7] : ' '; 
+                                plantillaDatos.KC4_ID_IND = esValorValido(datoConvertido.datos[10]) ? datoConvertido.datos[10] : '0';            
                             }
                                 break;
                         case 'FH':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
                                // pendiente
-                                plantillaDatos.KFH_ECOMM_3D_SECURE_IND = esValorValido(datoConvertido.datos[0][6]) ? datoConvertido.datos[0][6] : ' '; // posison 6 viene en blaco es correcto?
-                                plantillaDatos.KFH_CAV_TYP = esValorValido(datoConvertido.datos[0][13]) ? datoConvertido.datos[0][13] : ''; // posison 13     // esta en 8 es correcto documentacion dice otra cosa?                
+                                plantillaDatos.KFH_ECOMM_3D_SECURE_IND = esValorValido(datoConvertido.datos[5]) ? datoConvertido.datos[5] : ' '; // posison 6 viene en blaco es correcto?
+                                plantillaDatos.KFH_CAV_TYP = esValorValido(datoConvertido.datos[12]) ? datoConvertido.datos[12] : ''; // posison 13     // esta en 8 es correcto documentacion dice otra cosa?                
                             }
                                 break;
                         case 'B2':
