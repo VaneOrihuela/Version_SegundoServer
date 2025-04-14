@@ -108,7 +108,7 @@ const ObtenerDatosToken = async (req, res) => {
                 KC4_TXN_RTN_IND:null,
                 KC4_CRDHLDR_ACTVTTERM_IND:null,
                 KC4_CRDHLDR_IDMETHOD:null,
-                KR4_NUMERO_CONTRATO: null,
+                KR4_NUMERO_CONTRATO:null,
                 KC5_TIPO_PAGO:null
 
 
@@ -249,6 +249,18 @@ const ObtenerDatosToken = async (req, res) => {
           if (validarLongitud(p.NUMERO_TARJETA, 20)) errores.push({ campo: 'NUMERO_TARJETA', valor: p.NUMERO_TARJETA });
           if (validarLongitud(p.BOLETA, 20)) errores.push({ campo: 'BOLETA', valor: p.BOLETA });
           if (validarLongitud(p.KB2_ARQC, 16)) errores.push({ campo: 'KB2_ARQC', valor: p.KB2_ARQC });
+          if (validarLongitud(p.KC4_TERM_ATTEND_IND, 1)) errores.push({ campo: 'KC4_TERM_ATTEND_IND', valor: p.KC4_TERM_ATTEND_IND });
+          if (validarLongitud(p.KC4_TERM_OPER_IND, 1)) errores.push({ campo: 'KC4_TERM_OPER_IND', valor: p.KC4_TERM_OPER_IND });
+          if (validarLongitud(p.KC4_TERM_LOC_IND, 1)) errores.push({ campo: 'KC4_TERM_LOC_IND', valor: p.KC4_TERM_LOC_IND });
+          if (validarLongitud(p.KC4_CRDHLDR_PRESENTIND, 1)) errores.push({ campo: 'KC4_CRDHLDR_PRESENTIND', valor: p.KC4_CRDHLDR_PRESENTIND });
+          if (validarLongitud(p.KC4_CRD_PRESENT_IND, 1)) errores.push({ campo: 'KC4_CRD_PRESENT_IND', valor: p.KC4_CRD_PRESENT_IND });
+          if (validarLongitud(p.KC4_CRD_CAPTR_IND , 1)) errores.push({ campo: 'KC4_CRD_CAPTR_IND ', valor: p.KC4_CRD_CAPTR_IND  });
+          if (validarLongitud(p.KC4_TXN_STAT_IND, 1)) errores.push({ campo: 'KC4_TXN_STAT_IND', valor: p.KC4_TXN_STAT_IND });
+          if (validarLongitud(p.KC4_TXN_RTN_IND, 1)) errores.push({ campo: 'KC4_TXN_RTN_IND', valor: p.KC4_TXN_RTN_IND });
+          if (validarLongitud(p.KC4_CRDHLDR_ACTVTTERM_IND, 1)) errores.push({ campo: 'KC4_CRDHLDR_ACTVTTERM_IND', valor: p.KC4_CRDHLDR_ACTVTTERM_IND });
+          if (validarLongitud(p.KC4_CRDHLDR_IDMETHOD, 1)) errores.push({ campo: 'KC4_CRDHLDR_IDMETHOD', valor: p.KC4_CRDHLDR_IDMETHOD });
+          if (validarLongitud(p.KR4_NUMERO_CONTRATO, 20)) errores.push({ campo: 'KR4_NUMERO_CONTRATO', valor: p.KR4_NUMERO_CONTRATO });
+          if (validarLongitud(p.KC5_TIPO_PAGO, 2)) errores.push({ campo: 'KC5_TIPO_PAGO', valor: p.KC5_TIPO_PAGO });
       }
 
       if (errores.length > 0) {

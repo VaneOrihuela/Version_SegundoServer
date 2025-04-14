@@ -192,7 +192,19 @@ const Repositorio = {
                 NUMERO_TARJETA,
                 BOLETA,
                 TIPO,
-                KB2_ARQC
+                KB2_ARQC,
+                KC4_TERM_ATTEND_IND,
+                KC4_TERM_OPER_IND,
+                KC4_TERM_LOC_IND,
+                KC4_CRDHLDR_PRESENTIND,
+                KC4_CRD_PRESENT_IND,
+                KC4_CRD_CAPTR_IND,
+                KC4_TXN_STAT_IND,
+                KC4_TXN_RTN_IND,
+                KC4_CRDHLDR_ACTVTTERM_IND,
+                KC4_CRDHLDR_IDMETHOD,
+                KR4_NUMERO_CONTRATO,
+                KC5_TIPO_PAGO
             ) VALUES (
                 :KQ2_ID_MEDIO_ACCESO,
                 :KQN_FLAG,
@@ -210,7 +222,19 @@ const Repositorio = {
                 :NUMERO_TARJETA,
                 :BOLETA,
                 '0',
-                :KB2_ARQC
+                :KB2_ARQC,
+                :KC4_TERM_ATTEND_IND,
+                :KC4_TERM_OPER_IND,
+                :KC4_TERM_LOC_IND,
+                :KC4_CRDHLDR_PRESENTIND,
+                :KC4_CRD_PRESENT_IND,
+                :KC4_CRD_CAPTR_IND,
+                :KC4_TXN_STAT_IND,
+                :KC4_TXN_RTN_IND,
+                :KC4_CRDHLDR_ACTVTTERM_IND,
+                :KC4_CRDHLDR_IDMETHOD,
+                :KR4_NUMERO_CONTRATO,
+                :KC5_TIPO_PAGO
             )    
       `;
 
