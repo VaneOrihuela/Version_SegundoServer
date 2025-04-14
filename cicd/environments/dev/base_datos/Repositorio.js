@@ -68,6 +68,16 @@ const Repositorio = {
       where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null
       `;
 
+      // const query = `
+      // SELECT 
+      // '250326' as FECHA_TRASC, 
+      // 'SB0551006' as TIENDA_TERM, 
+      // '6088757000000429' as NUM_TARJETA, 
+      // '010585' as BOLETA, 
+      // '26203030303035303032353221205132303030303220303221204334303030313220303033343130303033303034212052343030303230203033303432303235313633323038553049333951212043353030313636204175746F72697A6163696F6E20646520636172676F2061207461726A657461205355425552424941202020202020202020204350534230323031303030303030303836313030303030303030303836313030303030303030303031313630303030303030303030333030303030303030303030303438303030303030303030333438303030303030303030373030303030303030303030313132303030303030303030383132'as TOKEN_DATA
+      // FROM dual
+      // `;
+
       if (connection && connection.isClosed) {
         console.log('La conexión estaba cerrada, abriéndola de nuevo...');
         connection = await conexion.conexion();  // Reabrimos la conexión
@@ -182,7 +192,19 @@ const Repositorio = {
                 NUMERO_TARJETA,
                 BOLETA,
                 TIPO,
-                KB2_ARQC
+                KB2_ARQC,
+                KC4_TERM_ATTEND_IND,
+                KC4_TERM_OPER_IND,
+                KC4_TERM_LOC_IND,
+                KC4_CRDHLDR_PRESENTIND,
+                KC4_CRD_PRESENT_IND,
+                KC4_CRD_CAPTR_IND,
+                KC4_TXN_STAT_IND,
+                KC4_TXN_RTN_IND,
+                KC4_CRDHLDR_ACTVTTERM_IND,
+                KC4_CRDHLDR_IDMETHOD,
+                KR4_NUMERO_CONTRATO,
+                KC5_TIPO_PAGO
             ) VALUES (
                 :KQ2_ID_MEDIO_ACCESO,
                 :KQN_FLAG,
@@ -200,7 +222,19 @@ const Repositorio = {
                 :NUMERO_TARJETA,
                 :BOLETA,
                 '0',
-                :KB2_ARQC
+                :KB2_ARQC,
+                :KC4_TERM_ATTEND_IND,
+                :KC4_TERM_OPER_IND,
+                :KC4_TERM_LOC_IND,
+                :KC4_CRDHLDR_PRESENTIND,
+                :KC4_CRD_PRESENT_IND,
+                :KC4_CRD_CAPTR_IND,
+                :KC4_TXN_STAT_IND,
+                :KC4_TXN_RTN_IND,
+                :KC4_CRDHLDR_ACTVTTERM_IND,
+                :KC4_CRDHLDR_IDMETHOD,
+                :KR4_NUMERO_CONTRATO,
+                :KC5_TIPO_PAGO
             )    
       `;
 
