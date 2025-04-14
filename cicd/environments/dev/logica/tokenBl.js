@@ -49,7 +49,7 @@ const ObtenerDatosToken = async (req, res) => {
         const startTime = Date.now();
         console.log(`Inicio del procesamiento ObtenerDatos de token: ${new Date(startTime).toLocaleString()}`);
         var count = 0;
-        datos.forEach(dato => {
+        for (const dato of datos) {
             count ++;
             console.log(`Token: ${count}`);           
             const convertirToken = new ConvertirToken(dato.TOKEN_DATA);
@@ -98,6 +98,20 @@ const ObtenerDatosToken = async (req, res) => {
                 NUMERO_TARJETA:null,
                 BOLETA:null,
                 KB2_ARQC:null,
+                KC4_TERM_ATTEND_IND:null,
+                KC4_TERM_OPER_IND:null,
+                KC4_TERM_LOC_IND:null,
+                KC4_CRDHLDR_PRESENTIND:null,
+                KC4_CRD_PRESENT_IND:null,
+                KC4_CRD_CAPTR_IND:null,
+                KC4_TXN_STAT_IND:null,
+                KC4_TXN_RTN_IND:null,
+                KC4_CRDHLDR_ACTVTTERM_IND:null,
+                KC4_CRDHLDR_IDMETHOD:null,
+                KR4_NUMERO_CONTRATO: null,
+                KC5_TIPO_PAGO:null
+
+
             };
 
             plantillaDatos.FECHA_TRANSACCION = dato.FECHA_TRASC;
@@ -105,7 +119,7 @@ const ObtenerDatosToken = async (req, res) => {
             plantillaDatos.NUMERO_TARJETA = dato.NUM_TARJETA;
             plantillaDatos.BOLETA = dato.BOLETA;            
 
-            resultadoConvertido.forEach(datoConvertido => {
+            for (const datoConvertido of resultadoConvertido) {
 
 
                 if (datoConvertido.tipo != null && datoConvertido.tipo != '') {
@@ -114,7 +128,6 @@ const ObtenerDatosToken = async (req, res) => {
                     switch (datoConvertido.tipo) {
                         case 'C0':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-
                                 plantillaDatos.KC0_IND_ECOM = esValorValido(datoConvertido.datos[18]) ? datoConvertido.datos[18] : ' '; // posison 19
                                 plantillaDatos.KC0_CVV2 = esValorValido(datoConvertido.datos[21]) ? datoConvertido.datos[21] : ' '; // posion 22
                                 plantillaDatos.KC0_RESULTADO_VALIDACION_CAVV = esValorValido(datoConvertido.datos[25]) ? datoConvertido.datos[25] : ' '; // posion 26
@@ -122,20 +135,20 @@ const ObtenerDatosToken = async (req, res) => {
                             break;
                         case 'Q2':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-                                const acceso = datoConvertido.datos.slice(0,2); // 2 posiciones
+                                const acceso = datoConvertido.datos.slice(4,6); // 2 posiciones
                                 plantillaDatos.KQ2_ID_MEDIO_ACCESO = esValorValido(acceso) ? acceso : '  ';   // posion 11  validar solo hay una longitud de dos y debe ser de 12                          
                             }
                             break;
                         case 'QN':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-                                const flag = datoConvertido.datos.slice(0,1);
-                                plantillaDatos.KQN_FLAG = esValorValido(flag) ? flag : ' '; // posicion 1      si sale correcto                       
+                                const flag = datoConvertido.datos.slice(0,2);
+                                plantillaDatos.KQN_FLAG = esValorValido(flag) ? flag : ' '; // posicion 1  y 2    si sale correcto                       
                             }
                                 break;
                          case 'CH':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
                                 
-                                plantillaDatos.KCH_RESP_SRC_RSN_CDE = esValorValido(datoConvertido.datos[0][1]) ? datoConvertido.datos[0][1] : ' '; // posison 1    En el token de ejemplo viene basio es correcto eso?                           
+                                plantillaDatos.KCH_RESP_SRC_RSN_CDE = esValorValido(datoConvertido.datos[0]) ? datoConvertido.datos[0] : ' '; // posison 1    En el token de ejemplo viene basio es correcto eso?                           
                             }
                                 break;
                         case 'RJ':
@@ -146,9 +159,22 @@ const ObtenerDatosToken = async (req, res) => {
                                 break;
                         case 'C4':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-                               
-                                plantillaDatos.KC4_NIV_SEG = esValorValido(datoConvertido.datos[7]) ? datoConvertido.datos[7] : ' '; 
-                                plantillaDatos.KC4_ID_IND = esValorValido(datoConvertido.datos[10]) ? datoConvertido.datos[10] : '0';            
+                                plantillaDatos.KC4_TERM_ATTEND_IND = esValorValido(datoConvertido.datos[0]) ? datoConvertido.datos[0] : ' '; // Posision 1  The Terminal attendance indicator indicates if the terminal is attended by the card acceptor.
+                                plantillaDatos.KC4_TERM_OPER_IND = esValorValido(datoConvertido.datos[1]) ? datoConvertido.datos[1] : ' '; // posicion 2  The Terminal Operator Indicator is currently not being used. The field is zero filled.}
+                                plantillaDatos.KC4_TERM_LOC_IND = esValorValido(datoConvertido.datos[2]) ? datoConvertido.datos[2] : ' ';// posicion 3 The Terminal Location Indicator indicates the location of the terminal.
+                                plantillaDatos.KC4_CRDHLDR_PRESENTIND = esValorValido(datoConvertido.datos[3]) ? datoConvertido.datos[3] : ' '; // posicion 4 The Cardholder Presence Indicator indicates whether the cardholder is present at the POS and explains the condition if the cardholder is not present.
+                                plantillaDatos.KC4_CRD_PRESENT_IND = esValorValido(datoConvertido.datos[4]) ? datoConvertido.datos[4] : ' ';// posicion 5 The Card Presence Indicator indicates if the card is present at the POS.
+                                plantillaDatos.KC4_CRD_CAPTR_IND = esValorValido(datoConvertido.datos[5]) ? datoConvertido.datos[5] : ' ';// posicion 6 The Card Capture Indicator indicates whether the terminal has card capture capabilities.
+                                plantillaDatos.KC4_TXN_STAT_IND = esValorValido(datoConvertido.datos[6]) ? datoConvertido.datos[6] : ' ';// posicion 7 The Transaction Status Indicator indicates the purpose or status of the request.
+
+                                plantillaDatos.KC4_NIV_SEG = esValorValido(datoConvertido.datos[7]) ? datoConvertido.datos[7] : ' '; // posicion 8 nivel de seguridad
+
+                                plantillaDatos.KC4_TXN_RTN_IND = esValorValido(datoConvertido.datos[8]) ? datoConvertido.datos[8] : ' '; // posicion 9 The Transaction Routing Indicator is currently not being used
+                                plantillaDatos.KC4_CRDHLDR_ACTVTTERM_IND = esValorValido(datoConvertido.datos[9]) ? datoConvertido.datos[9] : ' ';// posicion 10 The Cardholder Activated Terminal Indicator indicates whether the cardholder activated the terminal with the use of the card and the CAT security level.
+                                
+                                plantillaDatos.KC4_ID_IND = esValorValido(datoConvertido.datos[10]) ? datoConvertido.datos[10] : '0'; //    posicion 11  -- Ind. Cap.para trans. datos de la tarjeta a la term.
+                                
+                                plantillaDatos.KC4_CRDHLDR_IDMETHOD = esValorValido(datoConvertido.datos[11]) ?datoConvertido.datos[11] : '  '; //  posicion 12 This field reflects how the cardholder was verified.
                             }
                                 break;
                         case 'FH':
@@ -164,15 +190,27 @@ const ObtenerDatosToken = async (req, res) => {
                                 plantillaDatos.KB2_ARQC = esValorValido(arqc) ? arqc : '               '; // posison 16 viene en blaco es correcto?
                             }
                                 break;
+                        case 'R4':
+                            if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
+                                 // 20 posiciones   
+                                 const numeroContrato = datoConvertido.datos.slice(0,20);                              
+                                plantillaDatos.KR4_NUMERO_CONTRATO = esValorValido(numeroContrato) ? numeroContrato : '                   '; // posison 1 a la 20  viene en blaco es correcto?
+                            }
+                                break;
+                        case 'C5':
+                            if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
+                              const tipoPago = datoConvertido.datos.slice(56,58);                                                        
+                                plantillaDatos.KC5_TIPO_PAGO = esValorValido(tipoPago) ? tipoPago : '                   '; // posison 16 viene en blaco es correcto?
+                            }
+                                break;
                         default:
                             break;
                     }
                 }
-            });
-            // Agregar el objeto plantillaDatos a la lista plantillasDatos
+            };            // Agregar el objeto plantillaDatos a la lista plantillasDatos
             plantillasDatos.push(plantillaDatos);
-        });
-        console.log("plantilla",plantillasDatos);
+        };
+        
         const endTime = Date.now();
         console.log(`Finaliza del procesamiento obtener datos token: ${new Date(endTime).toLocaleString()}`);
         const timeTakenInSeconds = (endTime - startTime) / 1000; // Tiempo en segundos
@@ -194,64 +232,30 @@ const ObtenerDatosToken = async (req, res) => {
           };
         const errores = []; 
 
-        plantillasDatos.forEach(plantillaDatos => {
-            // Validar cada campo y agregarlo al arreglo de errores si excede la longitud
-            if (validarLongitud(plantillaDatos.KQ2_ID_MEDIO_ACCESO, 2)) {
-              errores.push({ campo: 'KQ2_ID_MEDIO_ACCESO', valor: plantillaDatos.KQ2_ID_MEDIO_ACCESO });
-            }
-            if (validarLongitud(plantillaDatos.KQN_FLAG, 2)) {
-              errores.push({ campo: 'KQN_FLAG', valor: plantillaDatos.KQN_FLAG });
-            }
-            if (validarLongitud(plantillaDatos.KCH_RESP_SRC_RSN_CDE, 2)) {
-              errores.push({ campo: 'KCH_RESP_SRC_RSN_CDE', valor: plantillaDatos.KCH_RESP_SRC_RSN_CDE });
-            }
-            if (validarLongitud(plantillaDatos.KRJ_VERSION_3DS, 2)) {
-              errores.push({ campo: 'KRJ_VERSION_3DS', valor: plantillaDatos.KRJ_VERSION_3DS });
-            }
-            if (validarLongitud(plantillaDatos.KC0_IND_ECOM, 2)) {
-              errores.push({ campo: 'KC0_IND_ECOM', valor: plantillaDatos.KC0_IND_ECOM });
-            }
-            if (validarLongitud(plantillaDatos.KC0_CVV2, 4)) {
-              errores.push({ campo: 'KC0_CVV2', valor: plantillaDatos.KC0_CVV2 });
-            }
-            if (validarLongitud(plantillaDatos.KC4_NIV_SEG, 1)) {
-              errores.push({ campo: 'KC4_NIV_SEG', valor: plantillaDatos.KC4_NIV_SEG });
-            }
-            if (validarLongitud(plantillaDatos.KC0_RESULTADO_VALIDACION_CAVV, 1)) {
-              errores.push({ campo: 'KC0_RESULTADO_VALIDACION_CAVV', valor: plantillaDatos.KC0_RESULTADO_VALIDACION_CAVV });
-            }
-            if (validarLongitud(plantillaDatos.KC4_ID_IND, 1)) {
-              errores.push({ campo: 'KC4_ID_IND', valor: plantillaDatos.KC4_ID_IND });
-            }
-            if (validarLongitud(plantillaDatos.KFH_ECOMM_3D_SECURE_IND, 2)) {
-              errores.push({ campo: 'KFH_ECOMM_3D_SECURE_IND', valor: plantillaDatos.KFH_ECOMM_3D_SECURE_IND });
-            }
-            if (validarLongitud(plantillaDatos.KFH_CAV_TYP, 2)) {
-              errores.push({ campo: 'KFH_CAV_TYP', valor: plantillaDatos.KFH_CAV_TYP });
-            }
-            if (validarLongitud(plantillaDatos.FECHA_TRANSACCION, 20)) {
-              errores.push({ campo: 'FECHA_TRANSACCION', valor: plantillaDatos.FECHA_TRANSACCION });
-            }
-            if (validarLongitud(plantillaDatos.TIENDA_TERMINAL, 20)) {
-              errores.push({ campo: 'TIENDA_TERMINAL', valor: plantillaDatos.TIENDA_TERMINAL });
-            }
-            if (validarLongitud(plantillaDatos.NUMERO_TARJETA, 20)) {
-              errores.push({ campo: 'NUMERO_TARJETA', valor: plantillaDatos.NUMERO_TARJETA });
-            }
-            if (validarLongitud(plantillaDatos.BOLETA, 20)) {
-              errores.push({ campo: 'BOLETA', valor: plantillaDatos.BOLETA });
-            }
-            if (validarLongitud(plantillaDatos.TIPO, 20)) {
-              errores.push({ campo: 'TIPO', valor: plantillaDatos.TIPO });
-            }
-            if (validarLongitud(plantillaDatos.ARQC, 16)) {
-              errores.push({ campo: 'ARQC', valor: plantillaDatos.ARQC });
-            }
-          });
+        for (const p of plantillasDatos) {
+          if (validarLongitud(p.KQ2_ID_MEDIO_ACCESO, 2)) errores.push({ campo: 'KQ2_ID_MEDIO_ACCESO', valor: p.KQ2_ID_MEDIO_ACCESO });
+          if (validarLongitud(p.KQN_FLAG, 2)) errores.push({ campo: 'KQN_FLAG', valor: p.KQN_FLAG });
+          if (validarLongitud(p.KCH_RESP_SRC_RSN_CDE, 2)) errores.push({ campo: 'KCH_RESP_SRC_RSN_CDE', valor: p.KCH_RESP_SRC_RSN_CDE });
+          if (validarLongitud(p.KRJ_VERSION_3DS, 2)) errores.push({ campo: 'KRJ_VERSION_3DS', valor: p.KRJ_VERSION_3DS });
+          if (validarLongitud(p.KC0_IND_ECOM, 2)) errores.push({ campo: 'KC0_IND_ECOM', valor: p.KC0_IND_ECOM });
+          if (validarLongitud(p.KC0_CVV2, 4)) errores.push({ campo: 'KC0_CVV2', valor: p.KC0_CVV2 });
+          if (validarLongitud(p.KC4_NIV_SEG, 1)) errores.push({ campo: 'KC4_NIV_SEG', valor: p.KC4_NIV_SEG });
+          if (validarLongitud(p.KC0_RESULTADO_VALIDACION_CAVV, 1)) errores.push({ campo: 'KC0_RESULTADO_VALIDACION_CAVV', valor: p.KC0_RESULTADO_VALIDACION_CAVV });
+          if (validarLongitud(p.KC4_ID_IND, 1)) errores.push({ campo: 'KC4_ID_IND', valor: p.KC4_ID_IND });
+          if (validarLongitud(p.KFH_ECOMM_3D_SECURE_IND, 2)) errores.push({ campo: 'KFH_ECOMM_3D_SECURE_IND', valor: p.KFH_ECOMM_3D_SECURE_IND });
+          if (validarLongitud(p.KFH_CAV_TYP, 2)) errores.push({ campo: 'KFH_CAV_TYP', valor: p.KFH_CAV_TYP });
+          if (validarLongitud(p.FECHA_TRANSACCION, 20)) errores.push({ campo: 'FECHA_TRANSACCION', valor: p.FECHA_TRANSACCION });
+          if (validarLongitud(p.TIENDA_TERMINAL, 20)) errores.push({ campo: 'TIENDA_TERMINAL', valor: p.TIENDA_TERMINAL });
+          if (validarLongitud(p.NUMERO_TARJETA, 20)) errores.push({ campo: 'NUMERO_TARJETA', valor: p.NUMERO_TARJETA });
+          if (validarLongitud(p.BOLETA, 20)) errores.push({ campo: 'BOLETA', valor: p.BOLETA });
+          if (validarLongitud(p.KB2_ARQC, 16)) errores.push({ campo: 'KB2_ARQC', valor: p.KB2_ARQC });
+      }
 
-          console.log("Errores: ", errores);          
+      if (errores.length > 0) {
+        console.log("Errores de validación:", errores);
+      }                
        
-        const responseGuardado = await repositorio.GuardarTransacciones(plantillasDatos);
+       const responseGuardado = await repositorio.GuardarTransacciones(plantillasDatos);
         const xml = generarXML(plantillasDatos);
         const responseModificar = await repositorio.ModificarTransaccionesFlag(xml);
         // obtener datos.
