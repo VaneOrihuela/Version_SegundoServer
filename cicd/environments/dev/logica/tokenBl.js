@@ -109,15 +109,27 @@ const ObtenerDatosToken = async (req, res) => {
                 KC4_CRDHLDR_ACTVTTERM_IND:null,
                 KC4_CRDHLDR_IDMETHOD:null,
                 KR4_NUMERO_CONTRATO:null,
-                KC5_TIPO_PAGO:null
-
-
+                KC5_TIPO_PAGO:null,
+                ENTRY_TIM:null,
+                DAT_TIM:null,
+                TRAN_TIM:null,
+                AMT_1:null,
+                TRAN_CDE_TC:null,
+                TYP:null,
+                APPRV_CDE:null
             };
 
             plantillaDatos.FECHA_TRANSACCION = dato.FECHA_TRASC;
             plantillaDatos.TIENDA_TERMINAL = dato.TIENDA_TERM;
             plantillaDatos.NUMERO_TARJETA = dato.NUM_TARJETA;
-            plantillaDatos.BOLETA = dato.BOLETA;            
+            plantillaDatos.BOLETA = dato.BOLETA;
+            plantillaDatos.ENTRY_TIM= dato.ENTRY_TIM;
+            plantillaDatos.DAT_TIM= dato.DAT_TIM;
+            plantillaDatos.TRAN_TIM= dato.TRAN_TIM;
+            plantillaDatos.AMT_1= dato.AMT_1;
+            plantillaDatos.TRAN_CDE_TC= dato.TRAN_CDE_TC;
+            plantillaDatos.TYP= dato.TYP;
+            plantillaDatos.APPRV_CDE = dato.APPRV_CDE;    
 
             for (const datoConvertido of resultadoConvertido) {
 
@@ -200,7 +212,7 @@ const ObtenerDatosToken = async (req, res) => {
                         case 'C5':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
                               const tipoPago = datoConvertido.datos.slice(56,58);                                                        
-                                plantillaDatos.KC5_TIPO_PAGO = esValorValido(tipoPago) ? tipoPago : '                   '; // posison 16 viene en blaco es correcto?
+                                plantillaDatos.KC5_TIPO_PAGO = esValorValido(tipoPago) ? tipoPago : '  '; // posison 16 viene en blaco es correcto?
                             }
                                 break;
                         default:
@@ -270,6 +282,15 @@ const ObtenerDatosToken = async (req, res) => {
        const responseGuardado = await repositorio.GuardarTransacciones(plantillasDatos);
         const xml = generarXML(plantillasDatos);
         const responseModificar = await repositorio.ModificarTransaccionesFlag(xml);
+
+        const endTimeAll = Date.now();
+        console.log(`Inicio del procesamiento ObtenerDatos de token: ${new Date(startTime).toLocaleString()}`);
+        console.log(`Finaliza del procesamiento obtener datos token: ${new Date(endTimeAll).toLocaleString()}`);
+        const timeTakenInSecondsAll = (endTimeAll - startTime) / 1000; // Tiempo en segundos
+        const minutesAll = Math.floor(timeTakenInSecondsAll / 60); // Minutos
+        const secondsAll = Math.floor(timeTakenInSecondsAll % 60); // Segundos
+
+        console.log(`Tiempo de procesamiento total: ${minutesAll} minutos y ${secondsAll} segundos.`);
         // obtener datos.
         return res.status(200).send({            
             version: "1.0.0", 
