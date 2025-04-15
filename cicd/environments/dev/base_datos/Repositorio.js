@@ -63,7 +63,14 @@ const Repositorio = {
         TERM_ID as TIENDA_TERM, 
         CARD_NUM as NUM_TARJETA, 
         ORIG_INVOICE_NUM as BOLETA, 
-       TOKEN_DATA
+        TOKEN_DATA,
+        ENTRY_TIM,
+        DAT_TIM,
+        TRAN_TIM,
+        AMT_1,
+        TRAN_CDE_TC,
+        TYP,
+        APPRV_CDE
         from TRANSACCIONES 
       where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null
       `;
@@ -133,7 +140,14 @@ const Repositorio = {
               TIENDA_TERM: row.TIENDA_TERM,
               NUM_TARJETA: row.NUM_TARJETA,
               BOLETA: row.BOLETA,
-              TOKEN_DATA: row.TOKEN_DATA
+              TOKEN_DATA: row.TOKEN_DATA,
+              ENTRY_TIM:row.ENTRY_TIM,
+              DAT_TIM:row.DAT_TIM,
+              TRAN_TIM:row.TRAN_TIM,
+              AMT_1:row.AMT_1,
+              TRAN_CDE_TC:row.TRAN_CDE_TC,
+              TYP:row.TYP,
+              APPRV_CDE:row.APPRV_CDE
             });
           });
           console.log(`✅ Procesados ${rows.length} registros...`);
@@ -204,7 +218,14 @@ const Repositorio = {
                 KC4_CRDHLDR_ACTVTTERM_IND,
                 KC4_CRDHLDR_IDMETHOD,
                 KR4_NUMERO_CONTRATO,
-                KC5_TIPO_PAGO
+                KC5_TIPO_PAGO,
+                ENTRY_TIM,
+                DAT_TIM,
+                TRAN_TIM,
+                AMT_1,
+                TRAN_CDE_TC,
+                TYP,
+                APPRV_CDE
             ) VALUES (
                 :KQ2_ID_MEDIO_ACCESO,
                 :KQN_FLAG,
@@ -234,7 +255,14 @@ const Repositorio = {
                 :KC4_CRDHLDR_ACTVTTERM_IND,
                 :KC4_CRDHLDR_IDMETHOD,
                 :KR4_NUMERO_CONTRATO,
-                :KC5_TIPO_PAGO
+                :KC5_TIPO_PAGO,
+                :ENTRY_TIM,
+                :DAT_TIM,
+                :TRAN_TIM,
+                :AMT_1,
+                :TRAN_CDE_TC,
+                :TYP,
+                :APPRV_CDE
             )    
       `;
 
