@@ -147,8 +147,8 @@ const ObtenerDatosToken = async (req, res) => {
                             break;
                         case 'Q2':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-                                const acceso = datoConvertido.datos.slice(4,6); // 2 posiciones
-                                plantillaDatos.KQ2_ID_MEDIO_ACCESO = esValorValido(acceso) ? acceso : '  ';   // posion 11  validar solo hay una longitud de dos y debe ser de 12                          
+                                const acceso = datoConvertido.datos.slice(0,2); // 2 posiciones
+                                plantillaDatos.KQ2_ID_MEDIO_ACCESO = esValorValido(acceso) ? acceso : '  ';   // posion 1 y 2                            
                             }
                             break;
                         case 'QN':
