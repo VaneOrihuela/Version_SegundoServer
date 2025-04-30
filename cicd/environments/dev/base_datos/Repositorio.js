@@ -70,9 +70,10 @@ const Repositorio = {
         AMT_1,
         TRAN_CDE_TC,
         TYP,
-        APPRV_CDE
+        APPRV_CDE,
+        UIDT
         from TRANSACCIONES 
-      where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null
+      where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null AND  UIDT IS NOT NULL
       `;
 
       // const query = `
@@ -110,9 +111,17 @@ const Repositorio = {
             TERM_ID AS TIENDA_TERM, 
             CARD_NUM AS NUM_TARJETA, 
             ORIG_INVOICE_NUM AS BOLETA, 
-            DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
+            DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA,
+            ENTRY_TIM,
+            DAT_TIM,
+            TRAN_TIM,
+            AMT_1,
+            TRAN_CDE_TC,
+            TYP,
+            APPRV_CDE,
+            UIDT       
         FROM TRANSACCIONES 
-        WHERE TOKEN_FLAG = 0 AND TOKEN_DATA IS NOT NULL
+        WHERE TOKEN_FLAG = 0 AND TOKEN_DATA IS NOT NULL AND  UIDT IS NOT NULL
         `;
 
         try {
@@ -147,7 +156,8 @@ const Repositorio = {
               AMT_1:row.AMT_1,
               TRAN_CDE_TC:row.TRAN_CDE_TC,
               TYP:row.TYP,
-              APPRV_CDE:row.APPRV_CDE
+              APPRV_CDE:row.APPRV_CDE,
+              UIDT:row.UIDT
             });
           });
           console.log(`✅ Procesados ${rows.length} registros...`);
@@ -225,7 +235,8 @@ const Repositorio = {
                 AMT_1,
                 TRAN_CDE_TC,
                 TYP,
-                APPRV_CDE
+                APPRV_CDE,
+                UIDT_TRANSACCIONES
             ) VALUES (
                 :KQ2_ID_MEDIO_ACCESO,
                 :KQN_FLAG,
@@ -262,7 +273,8 @@ const Repositorio = {
                 :AMT_1,
                 :TRAN_CDE_TC,
                 :TYP,
-                :APPRV_CDE
+                :APPRV_CDE,
+                :UIDT_TRANSACCIONES
             )    
       `;
 
