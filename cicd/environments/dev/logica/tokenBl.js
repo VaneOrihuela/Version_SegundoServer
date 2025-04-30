@@ -116,7 +116,8 @@ const ObtenerDatosToken = async (req, res) => {
                 AMT_1:null,
                 TRAN_CDE_TC:null,
                 TYP:null,
-                APPRV_CDE:null
+                APPRV_CDE:null,
+                UIDT_TRANSACCIONES:null
             };
 
             plantillaDatos.FECHA_TRANSACCION = dato.FECHA_TRASC;
@@ -129,7 +130,8 @@ const ObtenerDatosToken = async (req, res) => {
             plantillaDatos.AMT_1= dato.AMT_1;
             plantillaDatos.TRAN_CDE_TC= dato.TRAN_CDE_TC;
             plantillaDatos.TYP= dato.TYP;
-            plantillaDatos.APPRV_CDE = dato.APPRV_CDE;    
+            plantillaDatos.APPRV_CDE = dato.APPRV_CDE; 
+            plantillaDatos.UIDT_TRANSACCIONES =  dato.UIDT 
 
             for (const datoConvertido of resultadoConvertido) {
 
@@ -198,7 +200,7 @@ const ObtenerDatosToken = async (req, res) => {
                                 break;
                         case 'B2':
                             if (datoConvertido.datos != null && datoConvertido.datos != '' && datoConvertido.datos != undefined) {
-                                 const arqc = datoConvertido.datos.slice(31,47); // 16 posiciones                                
+                                 const arqc = datoConvertido.datos.slice(20,36); // 16 posiciones                                
                                 plantillaDatos.KB2_ARQC = esValorValido(arqc) ? arqc : '               '; // posison 16 viene en blaco es correcto?
                             }
                                 break;
@@ -273,13 +275,14 @@ const ObtenerDatosToken = async (req, res) => {
           if (validarLongitud(p.KC4_CRDHLDR_IDMETHOD, 1)) errores.push({ campo: 'KC4_CRDHLDR_IDMETHOD', valor: p.KC4_CRDHLDR_IDMETHOD });
           if (validarLongitud(p.KR4_NUMERO_CONTRATO, 20)) errores.push({ campo: 'KR4_NUMERO_CONTRATO', valor: p.KR4_NUMERO_CONTRATO });
           if (validarLongitud(p.KC5_TIPO_PAGO, 2)) errores.push({ campo: 'KC5_TIPO_PAGO', valor: p.KC5_TIPO_PAGO });
+          if(validarLongitud(p.UIDT_TRANSACCIONES, 16)) errores.push({ campo: 'UIDT_TRANSACCIONES', valor: p.UIDT_TRANSACCIONES });
       }
 
       if (errores.length > 0) {
         console.log("Errores de validación:", errores);
       }                
        
-       const responseGuardado = await repositorio.GuardarTransacciones(plantillasDatos);
+        const responseGuardado = await repositorio.GuardarTransacciones(plantillasDatos);
         const xml = generarXML(plantillasDatos);
         const responseModificar = await repositorio.ModificarTransaccionesFlag(xml);
 
