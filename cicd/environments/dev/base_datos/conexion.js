@@ -1,24 +1,21 @@
-const oracledb = require('oracledb');
-require('dotenv').config();
-
+const oracledb = require('oracledb'); // ✅ Importar oracledb
+require('dotenv').config();           // ✅ Cargar variables de entorno
 
 const conexion = async () => {
-    var conexionBd;
-
     try {
-        // Establecer conexión
-        conexionBd = await oracledb.getConnection({
+        const conexionBd = await oracledb.getConnection({
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             connectString: process.env.DB_CONNECTSTRING,
         });
+        console.log("Conexión a Oracle establecida correctamente.");
         return conexionBd;
     } catch (error) {
-        throw new Error('No se pudo conectar a la BD');
+        console.error("Error al conectar a Oracle:", error.message);
+        throw new Error('No se pudo conectar a la BD: ' + error.message);
     }
 };
 
-// Exportar la función para usarla en otros módulos
 module.exports = {
     conexion
 };

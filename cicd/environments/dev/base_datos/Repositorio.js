@@ -2,177 +2,91 @@ const conexion = require('./conexion');
 const oracledb = require('oracledb');
 
 const Repositorio = {
-  // Función para verificar si la conexión está abierta
   verificarConexion: async (connection) => {
     try {
-      // Realizamos una consulta sencilla para verificar si la conexión está activa
       await connection.execute('SELECT 1 FROM DUAL');
-      return true; // Si la consulta pasa, la conexión está activa
+      return true;
     } catch (error) {
       console.error("La conexión está cerrada o no es válida:", error);
-      return false; // Si ocurre un error, la conexión no es válida
+      return false;
     }
   },
+
   obtenerConexion: async () => {
-    let connection = await conexion.conexion();  // Intentamos obtener la conexión
-
+    let connection = await conexion.conexion();
     const isConnectionActive = await Repositorio.verificarConexion(connection);
-
-    // Si la conexión no está activa, la reabrimos
     if (!isConnectionActive) {
       console.log("Conexión cerrada. Intentando abrir una nueva...");
       connection = await conexion.conexion();
     }
-
     return connection;
   },
+
   ValidarConexion: async () => {
     let connection = await conexion.conexion();
     try {
-
       return await Repositorio.verificarConexion(connection);
-
     } catch (error) {
-      console.error("Error al obtener transacciones:", error);
+      console.error("Error al validar conexión:", error);
       throw error;
     } finally {
       if (connection) {
         try {
-          await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+          await connection.close();
         } catch (err) {
           console.error("Error al cerrar la conexión:", err);
         }
       }
     }
-
   },
-  // Función para obtener transacciones con los parámetros proporcionados
+
   obtenerTransacciones: async () => {
     let connection;
     try {
       connection = await Repositorio.obtenerConexion();
-
       const isConnectionActive = await Repositorio.verificarConexion(connection);
-      if (!isConnectionActive) {
-        throw new Error('La conexión no está activa o se cerró');
-      }
-      // Query para obtener las transacciones basadas en los filtros ORDER BY TRAN_DAT DESC  agrego etse campo poor silo vuelvena dejar long  DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA
+      if (!isConnectionActive) throw new Error('La conexión no está activa o se cerró');
+
       const query = `
-      select 
-        TRAN_DAT as FECHA_TRASC, 
-        TERM_ID as TIENDA_TERM, 
-        CARD_NUM as NUM_TARJETA, 
-        ORIG_INVOICE_NUM as BOLETA, 
-        TOKEN_DATA,
-        ENTRY_TIM,
-        DAT_TIM,
-        TRAN_TIM,
-        AMT_1,
-        TRAN_CDE_TC,
-        TYP,
-        APPRV_CDE,
-        UIDT
-        from TRANSACCIONES 
-      where  TOKEN_FLAG = 0 and  TOKEN_DATA is not null AND  UIDT IS NOT NULL
+        SELECT 
+          TRAN_DAT AS FECHA_TRASC, 
+          TERM_ID AS TIENDA_TERM, 
+          CARD_NUM AS NUM_TARJETA, 
+          ORIG_INVOICE_NUM AS BOLETA, 
+          TOKEN_DATA,
+          ENTRY_TIM,
+          DAT_TIM,
+          TRAN_TIM,
+          AMT_1,
+          TRAN_CDE_TC,
+          TYP,
+          APPRV_CDE,
+          UIDT
+        FROM (
+          SELECT * FROM TRANSACCIONES 
+          WHERE TOKEN_FLAG = 0 AND TOKEN_DATA IS NOT NULL AND UIDT IS NOT NULL
+          ORDER BY UIDT
+        )
+        WHERE ROWNUM <= 5
       `;
 
-      // const query = `
-      // SELECT 
-      // '250326' as FECHA_TRASC, 
-      // 'SB0551006' as TIENDA_TERM, 
-      // '6088757000000429' as NUM_TARJETA, 
-      // '010585' as BOLETA, 
-      // '26203030303035303032353221205132303030303220303221204334303030313220303033343130303033303034212052343030303230203033303432303235313633323038553049333951212043353030313636204175746F72697A6163696F6E20646520636172676F2061207461726A657461205355425552424941202020202020202020204350534230323031303030303030303836313030303030303030303836313030303030303030303031313630303030303030303030333030303030303030303030303438303030303030303030333438303030303030303030373030303030303030303030313132303030303030303030383132'as TOKEN_DATA
-      // FROM dual
-      // `;
-
-      if (connection && connection.isClosed) {
-        console.log('La conexión estaba cerrada, abriéndola de nuevo...');
-        connection = await conexion.conexion();  // Reabrimos la conexión
-      }
-
-      // Configuración para mejorar rendimiento
       const options = {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        resultSet: true,  // Usamos resultSet para mejorar la carga de datos
-        fetchArraySize: 10000  // Traemos 5000 filas por lote en lugar del default (100)
+        resultSet: true,
+        fetchArraySize: 1000
       };
 
-      let result;
-      // const result = await connection.execute(query, [], options);
-
-      try {
-        result = await connection.execute(query, [], options);
-      } catch (error) {
-        console.error("⚠ Error con la primera consulta, intentando con DBMS_LOB.SUBSTR:", error.message);
-        query = `
-        SELECT 
-            TRAN_DAT AS FECHA_TRASC, 
-            TERM_ID AS TIENDA_TERM, 
-            CARD_NUM AS NUM_TARJETA, 
-            ORIG_INVOICE_NUM AS BOLETA, 
-            DBMS_LOB.SUBSTR(TOKEN_DATA, 4000, 1) AS TOKEN_DATA,
-            ENTRY_TIM,
-            DAT_TIM,
-            TRAN_TIM,
-            AMT_1,
-            TRAN_CDE_TC,
-            TYP,
-            APPRV_CDE,
-            UIDT       
-        FROM TRANSACCIONES 
-        WHERE TOKEN_FLAG = 0 AND TOKEN_DATA IS NOT NULL AND  UIDT IS NOT NULL
-        `;
-
-        try {
-          result = await connection.execute(query, [], options);
-        } catch (finalError) {
-          console.error("❌ Ambas consultas fallaron:", finalError.message);
-          throw finalError; // Lanzamos el error final si ambas fallan
-        }
-      }
+      const result = await connection.execute(query, [], options);
       const resultSet = result.resultSet;
 
-      let rows = [];
-      let batchSize = 100000; // Procesamos 10,000 filas por lote
+      const rows = [];
       let fetchedRows;
-      const startTime = Date.now();
-      console.log(`Inicio del procesamiento: ${new Date(startTime).toLocaleString()}`);
       do {
-        // Obtener 10,000 filas de golpe
-        fetchedRows = await resultSet.getRows(batchSize);
-        if (fetchedRows.length > 0) {
-          // Añadir al array principal
-          fetchedRows.forEach(row => {
-            rows.push({
-              FECHA_TRASC: row.FECHA_TRASC,
-              TIENDA_TERM: row.TIENDA_TERM,
-              NUM_TARJETA: row.NUM_TARJETA,
-              BOLETA: row.BOLETA,
-              TOKEN_DATA: row.TOKEN_DATA,
-              ENTRY_TIM:row.ENTRY_TIM,
-              DAT_TIM:row.DAT_TIM,
-              TRAN_TIM:row.TRAN_TIM,
-              AMT_1:row.AMT_1,
-              TRAN_CDE_TC:row.TRAN_CDE_TC,
-              TYP:row.TYP,
-              APPRV_CDE:row.APPRV_CDE,
-              UIDT:row.UIDT
-            });
-          });
-          console.log(`✅ Procesados ${rows.length} registros...`);
-        }
-      } while (fetchedRows.length > 0); // Continuar hasta que no haya más filas
-      const endTime = Date.now();
-      console.log(`Inicio del procesamiento: ${new Date(endTime).toLocaleString()}`);
-      const timeTakenInSeconds = (endTime - startTime) / 1000; // Tiempo en segundos
-      const minutes = Math.floor(timeTakenInSeconds / 60); // Minutos
-      const seconds = Math.floor(timeTakenInSeconds % 60); // Segundos
-
-      console.log(`Tiempo de procesamiento: ${minutes} minutos y ${seconds} segundos.`);
+        fetchedRows = await resultSet.getRows(1000);
+        rows.push(...fetchedRows);
+      } while (fetchedRows.length > 0);
 
       await resultSet.close();
-      // Ejecutar la consulta con los parámetros proporcionados
       return rows;
     } catch (error) {
       console.error("Error al obtener transacciones:", error);
@@ -180,7 +94,7 @@ const Repositorio = {
     } finally {
       if (connection) {
         try {
-          await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+          await connection.close();
         } catch (err) {
           console.error("Error al cerrar la conexión:", err);
         }
@@ -192,155 +106,78 @@ const Repositorio = {
     let connection;
     try {
       connection = await Repositorio.obtenerConexion();
-
       const isConnectionActive = await Repositorio.verificarConexion(connection);
-      if (!isConnectionActive) {
-        throw new Error('La conexión no está activa o se cerró');
-      }
-      // Query para obtener las transacciones basadas en los filtros ORDER BY TRAN_DAT DESC
-      const query = `    
-            INSERT INTO INFO_TOKEN (
-                KQ2_ID_MEDIO_ACCESO,
-                KQN_FLAG,
-                KCH_RESP_SRC_RSN_CDE,
-                KRJ_VERSION_3DS,
-                KC0_IND_ECOM,
-                KC0_CVV2,
-                KC4_NIV_SEG,
-                KC0_RESULTADO_VALIDACION_CAVV,
-                KC4_ID_IND,
-                KFH_ECOMM_3D_SECURE_IND,
-                KFH_CAV_TYP,
-                FECHA_TRANSACCION,
-                TIENDA_TERMINAL,
-                NUMERO_TARJETA,
-                BOLETA,
-                TIPO,
-                KB2_ARQC,
-                KC4_TERM_ATTEND_IND,
-                KC4_TERM_OPER_IND,
-                KC4_TERM_LOC_IND,
-                KC4_CRDHLDR_PRESENTIND,
-                KC4_CRD_PRESENT_IND,
-                KC4_CRD_CAPTR_IND,
-                KC4_TXN_STAT_IND,
-                KC4_TXN_RTN_IND,
-                KC4_CRDHLDR_ACTVTTERM_IND,
-                KC4_CRDHLDR_IDMETHOD,
-                KR4_NUMERO_CONTRATO,
-                KC5_TIPO_PAGO,
-                ENTRY_TIM,
-                DAT_TIM,
-                TRAN_TIM,
-                AMT_1,
-                TRAN_CDE_TC,
-                TYP,
-                APPRV_CDE,
-                UIDT_TRANSACCIONES
-            ) VALUES (
-                :KQ2_ID_MEDIO_ACCESO,
-                :KQN_FLAG,
-                :KCH_RESP_SRC_RSN_CDE,
-                :KRJ_VERSION_3DS,
-                :KC0_IND_ECOM,
-                :KC0_CVV2,
-                :KC4_NIV_SEG,
-                :KC0_RESULTADO_VALIDACION_CAVV,
-                :KC4_ID_IND,
-                :KFH_ECOMM_3D_SECURE_IND,
-                :KFH_CAV_TYP,
-                :FECHA_TRANSACCION,
-                :TIENDA_TERMINAL,
-                :NUMERO_TARJETA,
-                :BOLETA,
-                '0',
-                :KB2_ARQC,
-                :KC4_TERM_ATTEND_IND,
-                :KC4_TERM_OPER_IND,
-                :KC4_TERM_LOC_IND,
-                :KC4_CRDHLDR_PRESENTIND,
-                :KC4_CRD_PRESENT_IND,
-                :KC4_CRD_CAPTR_IND,
-                :KC4_TXN_STAT_IND,
-                :KC4_TXN_RTN_IND,
-                :KC4_CRDHLDR_ACTVTTERM_IND,
-                :KC4_CRDHLDR_IDMETHOD,
-                :KR4_NUMERO_CONTRATO,
-                :KC5_TIPO_PAGO,
-                :ENTRY_TIM,
-                :DAT_TIM,
-                :TRAN_TIM,
-                :AMT_1,
-                :TRAN_CDE_TC,
-                :TYP,
-                :APPRV_CDE,
-                :UIDT_TRANSACCIONES
-            )    
+      if (!isConnectionActive) throw new Error('La conexión no está activa o se cerró');
+
+      const query = `
+        INSERT INTO INFO_TOKEN (
+          KQ2_ID_MEDIO_ACCESO, KQN_FLAG, KCH_RESP_SRC_RSN_CDE, KRJ_VERSION_3DS,
+          KC0_IND_ECOM, KC0_CVV2, KC4_NIV_SEG, KC0_RESULTADO_VALIDACION_CAVV,
+          KC4_ID_IND, KFH_ECOMM_3D_SECURE_IND, KFH_CAV_TYP, FECHA_TRANSACCION,
+          TIENDA_TERMINAL, NUMERO_TARJETA, BOLETA, TIPO, KB2_ARQC,
+          KC4_TERM_ATTEND_IND, KC4_TERM_OPER_IND, KC4_TERM_LOC_IND,
+          KC4_CRDHLDR_PRESENTIND, KC4_CRD_PRESENT_IND, KC4_CRD_CAPTR_IND,
+          KC4_TXN_STAT_IND, KC4_TXN_RTN_IND, KC4_CRDHLDR_ACTVTTERM_IND,
+          KC4_CRDHLDR_IDMETHOD, KR4_NUMERO_CONTRATO, KC5_TIPO_PAGO,
+          ENTRY_TIM, DAT_TIM, TRAN_TIM, AMT_1, TRAN_CDE_TC, TYP, APPRV_CDE,
+          UIDT_TRANSACCIONES
+        ) VALUES (
+          :KQ2_ID_MEDIO_ACCESO, :KQN_FLAG, :KCH_RESP_SRC_RSN_CDE, :KRJ_VERSION_3DS,
+          :KC0_IND_ECOM, :KC0_CVV2, :KC4_NIV_SEG, :KC0_RESULTADO_VALIDACION_CAVV,
+          :KC4_ID_IND, :KFH_ECOMM_3D_SECURE_IND, :KFH_CAV_TYP, :FECHA_TRANSACCION,
+          :TIENDA_TERMINAL, :NUMERO_TARJETA, :BOLETA, '0', :KB2_ARQC,
+          :KC4_TERM_ATTEND_IND, :KC4_TERM_OPER_IND, :KC4_TERM_LOC_IND,
+          :KC4_CRDHLDR_PRESENTIND, :KC4_CRD_PRESENT_IND, :KC4_CRD_CAPTR_IND,
+          :KC4_TXN_STAT_IND, :KC4_TXN_RTN_IND, :KC4_CRDHLDR_ACTVTTERM_IND,
+          :KC4_CRDHLDR_IDMETHOD, :KR4_NUMERO_CONTRATO, :KC5_TIPO_PAGO,
+          :ENTRY_TIM, :DAT_TIM, :TRAN_TIM, :AMT_1, :TRAN_CDE_TC, :TYP, :APPRV_CDE,
+          :UIDT_TRANSACCIONES
+        )
       `;
 
-      if (connection && connection.isClosed) {
-        console.log('La conexión estaba cerrada, abriéndola de nuevo...');
-        connection = await conexion.conexion();  // Reabrimos la conexión
-      }
-      // Ejecutar la consulta con los parámetros proporcionados
       const resultado = await connection.executeMany(query, plantillas, { autoCommit: true });
-
       console.log(`Número de filas insertadas: ${resultado.rowsAffected}`);
       return resultado.rowsAffected;
     } catch (error) {
-      console.error("Error al obtener transacciones:", error);
+      console.error("Error al guardar transacciones:", error);
       throw error;
     } finally {
       if (connection) {
         try {
-          await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+          await connection.close();
         } catch (err) {
           console.error("Error al cerrar la conexión:", err);
         }
       }
     }
   },
-  ModificarTransaccionesFlag: async (xml) => {
+
+  ModificarTransaccionesFlag: async () => {
     let connection;
     try {
       connection = await Repositorio.obtenerConexion();
-
       const isConnectionActive = await Repositorio.verificarConexion(connection);
-      if (!isConnectionActive) {
-        throw new Error('La conexión no está activa o se cerró');
-      }
-
-
-      //const query = `BEGIN transacciones_pkg.actualizar_token_flag(:p_xml); END;`;
-      //const binds = { p_xml: { val: xml, type: oracledb.CLOB } };
+      if (!isConnectionActive) throw new Error('La conexión no está activa o se cerró');
 
       const result = await connection.execute(
-        `UPDATE TRANSACCIONES
-           SET TOKEN_FLAG = 1
-           WHERE TOKEN_FLAG = 0`
+        `UPDATE TRANSACCIONES SET TOKEN_FLAG = 1 WHERE TOKEN_FLAG = 0`
       );
 
-      // Ejecutar el batch de la consulta
-      //await connection.execute(query, binds, { autoCommit: true });  
-
-      // Realizar commit intermedio después de cada lote
       await connection.commit();
       return result.rowsAffected;
-
     } catch (error) {
-      console.error("Error al ejecutar  UPDATE masivo:", error);
+      console.error("Error al modificar flags de transacciones:", error);
       throw error;
     } finally {
       if (connection) {
         try {
-          await connection.close(); // Aseguramos cerrar la conexión después de la consulta
+          await connection.close();
         } catch (err) {
           console.error("Error al cerrar la conexión:", err);
         }
       }
     }
   }
-
 };
 
 module.exports = Repositorio;

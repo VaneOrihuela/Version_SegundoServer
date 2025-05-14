@@ -23,8 +23,9 @@ class ConvertirToken {
             }
             asciiString += String.fromCharCode(charCode);
         }
-        return  asciiString;
+        return asciiString;
     }
+
     convertirHexADecimal(hexString) {
         // Usamos parseInt con base 16 para convertir el valor hexadecimal a decimal
         return parseInt(hexString, 16);
@@ -35,7 +36,10 @@ class ConvertirToken {
         let esPrimerDato = true;
 
         while (restante.length > 0) {
-            let signoInicio, tipo, longitud, datos = "";
+            let signoInicio = "";
+            let tipo = "";
+            let longitud = "";
+            let datos = "";
 
             if (this.resultadoToken.length === 0) {
                 // Primer bloque (primeros 12 caracteres)
@@ -62,7 +66,14 @@ class ConvertirToken {
             }
 
             // Guardar objeto con los datos en la lista
-            this.resultadoToken.push(new Token(signoInicio, tipo, longitud, esPrimerDato ? null : datos.trim()));
+            this.resultadoToken.push(
+                new Token(
+                    signoInicio,
+                    tipo,
+                    longitud,
+                    esPrimerDato ? null : datos.trim()
+                )
+            );
 
             esPrimerDato = false; // A partir de aquí, los registros tendrán datos
         }
@@ -73,3 +84,4 @@ class ConvertirToken {
 
 // Exportamos las clases para que puedan usarse en otros archivos
 module.exports = { ConvertirToken, Token };
+
